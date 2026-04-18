@@ -147,14 +147,6 @@ const SubmitComplaint = () => {
               <span className="label">Customer Sentiment</span>
               <span className="value text-danger">{result.sentiment}</span>
             </div>
-            <div className="result-item full-width">
-              <span className="label">Extracted Keywords</span>
-              <div className="tags">
-                {result.keywords.map((kw, i) => (
-                  <span key={i} className="keyword-tag">{kw}</span>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       )}
