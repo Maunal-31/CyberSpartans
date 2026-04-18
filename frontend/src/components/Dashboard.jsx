@@ -15,7 +15,13 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
     const allTickets = [...tickets, ...resolvedTickets];
 
     allTickets.forEach(ticket => {
-      const cat = ticket.category || 'Unknown';
+      let cat = ticket.category || 'Unknown';
+      
+      // Normalize categories to remove redundant labels
+      if (cat === 'Trade') cat = 'Trade Inquiry';
+      if (cat === 'Packaging') cat = 'Packaging Issue';
+      if (cat === 'Product') cat = 'Product Issue';
+
       categoryCount[cat] = (categoryCount[cat] || 0) + 1;
       
       if (!categoryStock[cat]) {
@@ -30,10 +36,20 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
       }
     });
 
-    const pieData = Object.keys(categoryCount).map(key => ({
-      name: key,
-      value: categoryCount[key]
-    }));
+    const VALID_CATEGORIES = [
+      'Product Issue', 
+      'Packaging Issue', 
+      'Trade Inquiry', 
+      'Shipping Issue', 
+      'Delivery Delay'
+    ];
+
+    const pieData = Object.keys(categoryCount)
+      .filter(key => VALID_CATEGORIES.includes(key))
+      .map(key => ({
+        name: key,
+        value: categoryCount[key]
+      }));
 
     // Find most frequent error
     let topError = { name: 'None', count: 0 };
@@ -59,15 +75,22 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
       topError,
       topStock,
       shippingErrorCount,
-      hasContinuousShippingError: shippingErrorCount >= 2
+      hasContinuousShippingError: shippingErrorCount >= 2,
+      lastUpdated: new Date().toLocaleTimeString()
     };
   }, [tickets, resolvedTickets]);
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h2>Analytics Dashboard</h2>
-        <p>Real-time insights on operational issues and product analytics.</p>
+        <div className="header-main">
+          <h2>Analytics Dashboard</h2>
+          <div className="live-status">
+            <span className="pulse-dot"></span>
+            <span className="live-text">Live Operations</span>
+          </div>
+        </div>
+        <p>Real-time insights on operational issues and product analytics. Last sync: {analytics.lastUpdated}</p>
       </div>
 
       {analytics.hasContinuousShippingError && (
