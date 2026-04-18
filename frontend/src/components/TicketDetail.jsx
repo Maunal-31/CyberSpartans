@@ -13,6 +13,17 @@ const TicketDetail = ({ ticket }) => {
     );
   }
 
+  const getSentimentColor = (sentiment) => {
+    switch (sentiment) {
+      case 'Angry': return 'text-danger';
+      case 'Frustrated': return 'text-warning';
+      case 'Sad': return 'text-warning';
+      case 'Neutral': return 'text-secondary';
+      case 'Happy': return 'text-success';
+      default: return 'text-secondary';
+    }
+  };
+
   return (
     <div className="ticket-detail-container">
       {/* Left Column: Complaint Details */}
@@ -35,7 +46,7 @@ const TicketDetail = ({ ticket }) => {
             <p>Customer since 2024 • 3 previous tickets</p>
           </div>
           <div className="sentiment-badge">
-            Sentiment: <span className={ticket.sentiment === 'Angry' ? 'text-danger' : 'text-warning'}>{ticket.sentiment}</span>
+            Sentiment: <span className={getSentimentColor(ticket.sentiment)}>{ticket.sentiment}</span>
           </div>
         </div>
 

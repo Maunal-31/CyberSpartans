@@ -6,22 +6,22 @@ df = pd.read_csv('TS-PS14.csv')
 
 # First, remap the core original phrases
 mapping = {
-    'Need bulk order details': {'priority': 'Medium', 'sentiment': 0.5, 'category': 'Trade'},
-    'Box was broken': {'priority': 'High', 'sentiment': -0.8, 'category': 'Packaging'},
-    'Product stopped working': {'priority': 'High', 'sentiment': -0.9, 'category': 'Product'},
-    'Poor packaging quality': {'priority': 'Medium', 'sentiment': -0.5, 'category': 'Packaging'},
-    'Inquiry about pricing': {'priority': 'Low', 'sentiment': 0.2, 'category': 'Trade'},
-    'Damaged packaging': {'priority': 'High', 'sentiment': -0.7, 'category': 'Packaging'},
-    'Trade-related query': {'priority': 'Low', 'sentiment': 0.0, 'category': 'Trade'},
-    'Product malfunctioning': {'priority': 'High', 'sentiment': -0.8, 'category': 'Product'},
-    'Defective item received': {'priority': 'High', 'sentiment': -0.9, 'category': 'Product'}
+    'Need bulk order details': {'priority': 'Medium', 'sentiment': 'Neutral', 'category': 'Trade'},
+    'Box was broken': {'priority': 'High', 'sentiment': 'Frustrated', 'category': 'Packaging'},
+    'Product stopped working': {'priority': 'High', 'sentiment': 'Angry', 'category': 'Product'},
+    'Poor packaging quality': {'priority': 'Medium', 'sentiment': 'Sad', 'category': 'Packaging'},
+    'Inquiry about pricing': {'priority': 'Low', 'sentiment': 'Neutral', 'category': 'Trade'},
+    'Damaged packaging': {'priority': 'High', 'sentiment': 'Frustrated', 'category': 'Packaging'},
+    'Trade-related query': {'priority': 'Low', 'sentiment': 'Neutral', 'category': 'Trade'},
+    'Product malfunctioning': {'priority': 'High', 'sentiment': 'Angry', 'category': 'Product'},
+    'Defective item received': {'priority': 'High', 'sentiment': 'Angry', 'category': 'Product'}
 }
 
 def fix_priority(text):
     return mapping.get(text, {}).get('priority', 'Medium')
 
 def fix_sentiment(text):
-    return mapping.get(text, {}).get('sentiment', 0.0)
+    return mapping.get(text, {}).get('sentiment', 'Neutral')
 
 def fix_category(text):
     return mapping.get(text, {}).get('category', 'Product')
@@ -37,40 +37,40 @@ df['category'] = df['text'].apply(fix_category)
 # Now, let's create a MASSIVE dictionary of variations so the AI learns the vocabulary perfectly.
 extra_data = [
     # LOW PRIORITY (General inquiries, pricing, availability, feedback)
-    ("inquiry for bulk order", "Trade", "Low", 0.5),
-    ("I want to know the pricing", "Trade", "Low", 0.2),
-    ("what are your wholesale rates", "Trade", "Low", 0.1),
-    ("do you have this in stock", "Trade", "Low", 0.3),
-    ("just checking the status of my order", "Trade", "Low", 0.0),
-    ("when will this be available", "Trade", "Low", 0.0),
-    ("can I get a discount", "Trade", "Low", 0.2),
-    ("feedback about your service", "Trade", "Low", 0.8),
-    ("how do I create an account", "Trade", "Low", 0.1),
-    ("is there a catalog available", "Trade", "Low", 0.2),
-    ("general question about trade", "Trade", "Low", 0.0),
+    ("inquiry for bulk order", "Trade", "Low", "Neutral"),
+    ("I want to know the pricing", "Trade", "Low", "Neutral"),
+    ("what are your wholesale rates", "Trade", "Low", "Neutral"),
+    ("do you have this in stock", "Trade", "Low", "Neutral"),
+    ("just checking the status of my order", "Trade", "Low", "Neutral"),
+    ("when will this be available", "Trade", "Low", "Neutral"),
+    ("can I get a discount", "Trade", "Low", "Happy"),
+    ("feedback about your service", "Trade", "Low", "Happy"),
+    ("how do I create an account", "Trade", "Low", "Neutral"),
+    ("is there a catalog available", "Trade", "Low", "Neutral"),
+    ("general question about trade", "Trade", "Low", "Neutral"),
 
     # MEDIUM PRIORITY (Minor issues, delays, packaging quality, missing small parts)
-    ("Need bulk order details urgently", "Trade", "Medium", 0.0),
-    ("my delivery is delayed", "Packaging", "Medium", -0.4),
-    ("poor packaging quality", "Packaging", "Medium", -0.5),
-    ("missing a small screw in the box", "Packaging", "Medium", -0.3),
-    ("the box was slightly dented", "Packaging", "Medium", -0.2),
-    ("can I change my shipping address", "Trade", "Medium", 0.0),
-    ("the color is slightly different than the picture", "Product", "Medium", -0.2),
-    ("where is my order", "Trade", "Medium", -0.1),
+    ("Need bulk order details urgently", "Trade", "Medium", "Neutral"),
+    ("my delivery is delayed", "Packaging", "Medium", "Sad"),
+    ("poor packaging quality", "Packaging", "Medium", "Frustrated"),
+    ("missing a small screw in the box", "Packaging", "Medium", "Frustrated"),
+    ("the box was slightly dented", "Packaging", "Medium", "Sad"),
+    ("can I change my shipping address", "Trade", "Medium", "Neutral"),
+    ("the color is slightly different than the picture", "Product", "Medium", "Sad"),
+    ("where is my order", "Trade", "Medium", "Frustrated"),
 
     # HIGH PRIORITY (Broken, damaged, defective, refunds, entirely unacceptable)
-    ("received damaged product", "Product", "High", -0.9),
-    ("the item is completely broken", "Product", "High", -0.95),
-    ("product is malfunctioning", "Product", "High", -0.8),
-    ("it exploded when I plugged it in", "Product", "High", -1.0),
-    ("I want a full refund right now", "Trade", "High", -0.9),
-    ("terrible quality it fell apart", "Product", "High", -0.85),
-    ("the glass was shattered in the box", "Packaging", "High", -0.9),
-    ("completely defective item", "Product", "High", -0.9),
-    ("this is a scam I want my money back", "Trade", "High", -0.95),
-    ("dangerous product sparked and smoked", "Product", "High", -1.0),
-    ("never received my expensive package", "Packaging", "High", -0.8),
+    ("received damaged product", "Product", "High", "Angry"),
+    ("the item is completely broken", "Product", "High", "Angry"),
+    ("product is malfunctioning", "Product", "High", "Angry"),
+    ("it exploded when I plugged it in", "Product", "High", "Angry"),
+    ("I want a full refund right now", "Trade", "High", "Angry"),
+    ("terrible quality it fell apart", "Product", "High", "Frustrated"),
+    ("the glass was shattered in the box", "Packaging", "High", "Angry"),
+    ("completely defective item", "Product", "High", "Frustrated"),
+    ("this is a scam I want my money back", "Trade", "High", "Angry"),
+    ("dangerous product sparked and smoked", "Product", "High", "Angry"),
+    ("never received my expensive package", "Packaging", "High", "Sad"),
 ]
 
 new_rows = []

@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { Mic, Image as ImageIcon, MessageSquare, PhoneCall, FileText, Send, Loader } from 'lucide-react';
 import './SubmitComplaint.css';
 
-const SubmitComplaint = () => {
+const SubmitComplaint = ({ onAddTicket }) => {
   const [inputType, setInputType] = useState('text'); // text, audio, image, call, conversation
   const [complaintText, setComplaintText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
+  const [addedToQueue, setAddedToQueue] = useState(false);
 
   const handleProcess = async () => {
     setIsProcessing(true);
     setResult(null);
+    setAddedToQueue(false);
     
     try {
       const response = await fetch('http://127.0.0.1:5000/api/classify', {
@@ -22,12 +24,45 @@ const SubmitComplaint = () => {
       });
       
       const data = await response.json();
-      setResult({
+      const classifiedResult = {
         category: data.category || "Unknown",
         priority: data.priority || "Medium",
         sentiment: data.sentiment || "Neutral",
         keywords: data.keywords || []
-      });
+      };
+      setResult(classifiedResult);
+
+      if (onAddTicket) {
+        const newTicket = {
+          id: `TCK-${Math.floor(1000 + Math.random() * 9000)}`,
+          customerName: "New Customer",
+          avatar: `https://i.pravatar.cc/150?u=${Math.floor(Math.random() * 10000)}`,
+          summary: complaintText.substring(0, 40) + (complaintText.length > 40 ? "..." : ""),
+          channel: inputType === 'text' ? 'Web Form' : inputType === 'audio' ? 'Voice' : inputType === 'call' ? 'Phone' : 'Chat',
+          timeAgo: "0m ago",
+          sentiment: classifiedResult.sentiment,
+          priority: classifiedResult.priority,
+          category: classifiedResult.category,
+          product: "Pending Review",
+          sku: "N/A",
+          details: complaintText,
+          image: null,
+          aiAnalysis: {
+            suggestedCategory: classifiedResult.category,
+            confidence: Math.floor(85 + Math.random() * 14),
+            sentimentScore: 0,
+            keyPhrases: classifiedResult.keywords,
+          },
+          aiRecommendation: {
+            action: "Pending Agent Review",
+            reasoning: "Newly submitted complaint automatically classified by AI.",
+            autoResponse: "Thank you for reaching out. We are reviewing your issue and will respond shortly."
+          }
+        };
+        onAddTicket(newTicket);
+        setAddedToQueue(true);
+        setTimeout(() => setAddedToQueue(false), 5000);
+      }
     } catch (error) {
       console.error("Error calling API:", error);
       setResult({
@@ -148,6 +183,11 @@ const SubmitComplaint = () => {
               <span className="value text-danger">{result.sentiment}</span>
             </div>
           </div>
+          {addedToQueue && (
+            <div style={{ marginTop: '15px', color: 'var(--success)', fontWeight: 'bold', textAlign: 'center', background: 'rgba(39, 174, 96, 0.1)', padding: '10px', borderRadius: '8px' }}>
+              ✅ Successfully added to the active ticket queue!
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -15,7 +15,10 @@ const TicketList = ({ tickets, selectedTicket, setSelectedTicket }) => {
     switch (sentiment) {
       case 'Angry': return 'text-danger';
       case 'Frustrated': return 'text-warning';
-      default: return 'text-success';
+      case 'Sad': return 'text-warning';
+      case 'Neutral': return 'text-secondary';
+      case 'Happy': return 'text-success';
+      default: return 'text-secondary';
     }
   };
 

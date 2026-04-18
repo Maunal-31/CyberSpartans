@@ -19,17 +19,8 @@ def train_models(data_path, output_dir):
     y_category = df['category']
     y_priority = df['priority']
     
-    # The sentiment in the CSV is continuous (-1 to 1). 
-    # Convert it to discrete labels for classification.
-    def map_sentiment(val):
-        if val <= -0.1:
-            return 'Negative'
-        elif val >= 0.1:
-            return 'Positive'
-        else:
-            return 'Neutral'
-            
-    y_sentiment = df['sentiment'].apply(map_sentiment)
+    # The sentiment in the CSV is now categorical (Angry, Sad, Frustrated, Neutral, Happy).
+    y_sentiment = df['sentiment']
     
     # Common pipeline steps for all models
     def create_pipeline():

@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { Download, Printer, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { mockTickets } from '../data/mockData';
 import './Reports.css';
 
-const Reports = () => {
-  // Mock data for the report based on existing tickets and some simulated stats
-  const [reportData] = useState({
-    slaBreaches: 4,
-    totalResolutionsToday: 24,
-    avgResolutionTime: "2.5 hrs",
-    priorityStats: {
-      High: 12,
-      Medium: 45,
-      Low: 30
-    },
-    resolutionsList: mockTickets.map(t => ({
-      id: t.id,
-      category: t.category,
-      priority: t.priority,
-      resolutionAction: t.aiRecommendation.action,
-      timeTaken: Math.floor(Math.random() * 5) + 1 + " hrs"
-    }))
-  });
+const Reports = ({ tickets }) => {
+  const reportData = useMemo(() => {
+    let highCount = 0;
+    let mediumCount = 0;
+    let lowCount = 0;
+
+    const resolutionsList = tickets.map(t => {
+      if (t.priority === 'High') highCount++;
+      else if (t.priority === 'Medium') mediumCount++;
+      else lowCount++;
+
+      return {
+        id: t.id,
+        category: t.category || "Unknown",
+        priority: t.priority || "Low",
+        resolutionAction: t.aiRecommendation?.action || "Pending Agent Review",
+        timeTaken: t.timeAgo || "Just now"
+      };
+    });
+
+    const totalResolutionsToday = tickets.length;
+    // Simulate dynamic SLA breaches based on high priority count
+    const slaBreaches = Math.max(1, Math.floor(highCount * 0.3)); 
+    
+    return {
+      slaBreaches,
+      totalResolutionsToday,
+      avgResolutionTime: "1.2 hrs",
+      priorityStats: {
+        High: highCount,
+        Medium: mediumCount,
+        Low: lowCount
+      },
+      resolutionsList
+    };
+  }, [tickets]);
 
   const downloadCSV = () => {
     const headers = ["Ticket ID", "Category", "Priority", "Resolution Action", "Time Taken"];
@@ -87,17 +103,17 @@ const Reports = () => {
           <div className="dist-bars">
             <div className="dist-row">
               <span className="dist-label">High Priority</span>
-              <div className="bar-bg"><div className="bar-fill bg-danger" style={{width: '25%'}}></div></div>
+              <div className="bar-bg"><div className="bar-fill bg-danger" style={{width: `${(reportData.priorityStats.High / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
               <span className="dist-count">{reportData.priorityStats.High}</span>
             </div>
             <div className="dist-row">
               <span className="dist-label">Medium Priority</span>
-              <div className="bar-bg"><div className="bar-fill bg-warning" style={{width: '50%'}}></div></div>
+              <div className="bar-bg"><div className="bar-fill bg-warning" style={{width: `${(reportData.priorityStats.Medium / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
               <span className="dist-count">{reportData.priorityStats.Medium}</span>
             </div>
             <div className="dist-row">
               <span className="dist-label">Low Priority</span>
-              <div className="bar-bg"><div className="bar-fill bg-success" style={{width: '35%'}}></div></div>
+              <div className="bar-bg"><div className="bar-fill bg-success" style={{width: `${(reportData.priorityStats.Low / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
               <span className="dist-count">{reportData.priorityStats.Low}</span>
             </div>
           </div>
