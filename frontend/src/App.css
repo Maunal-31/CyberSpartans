@@ -1,0 +1,50 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.executive-view {
+  display: flex;
+  gap: 24px;
+  height: 100%;
+}
+
+.ticket-list-wrapper {
+  width: 380px;
+  flex-shrink: 0;
+}
+
+.ticket-detail-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.coming-soon {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.coming-soon h2 {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--accent-violet-light), var(--accent-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.coming-soon p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}

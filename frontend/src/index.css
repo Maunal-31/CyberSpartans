@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #0a0b10;
+  --bg-panel: rgba(20, 22, 37, 0.6);
+  --bg-panel-hover: rgba(30, 33, 50, 0.8);
+  --text-primary: #ffffff;
+  --text-secondary: #8f95b2;
+  --accent-violet: #7c3aed;
+  --accent-violet-light: #8b5cf6;
+  --accent-green: #10b981;
+  --accent-green-glow: rgba(16, 185, 129, 0.4);
+  --danger: #ef4444;
+  --danger-glow: rgba(239, 68, 68, 0.4);
+  --warning: #f59e0b;
+  
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --border-radius-lg: 16px;
+  --border-radius-md: 12px;
+  --border-radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Add a subtle background gradient for depth */
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(124, 58, 237, 0.05), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+/* --- Glassmorphism Utilities --- */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-glass);
+  border-radius: var(--border-radius-lg);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--border-radius-md);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* --- Components --- */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-violet-light));
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+}
+
+.btn-action {
+  background: linear-gradient(135deg, var(--accent-green), #059669);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--accent-green-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.6);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
