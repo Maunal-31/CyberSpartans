@@ -2,7 +2,9 @@ import React from 'react';
 import { Bot, CheckCircle, AlertTriangle, ShieldAlert, Sparkles, Send, Paperclip } from 'lucide-react';
 import './TicketDetail.css';
 
-const TicketDetail = ({ ticket }) => {
+const TicketDetail = ({ ticket, onResolve }) => {
+  const [response, setResponse] = React.useState('');
+
   if (!ticket) {
     return (
       <div className="ticket-detail-empty glass-panel">
@@ -12,6 +14,17 @@ const TicketDetail = ({ ticket }) => {
       </div>
     );
   }
+
+  const handleApprove = () => {
+    onResolve(ticket, "");
+    setResponse("");
+  };
+
+  const handleReply = () => {
+    if (!response.trim()) return;
+    onResolve(ticket, response);
+    setResponse("");
+  };
 
   const getSentimentColor = (sentiment) => {
     switch (sentiment) {
@@ -66,10 +79,18 @@ const TicketDetail = ({ ticket }) => {
         </div>
 
         <div className="reply-box">
-          <textarea placeholder="Type your response..."></textarea>
+          <textarea 
+            placeholder="Type your response..."
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+          ></textarea>
           <div className="reply-actions">
             <button className="icon-btn"><Paperclip size={18} /></button>
-            <button className="btn-action send-btn">
+            <button 
+              className="btn-action send-btn"
+              onClick={handleReply}
+              disabled={!response.trim()}
+            >
               <Send size={16} /> Send Reply
             </button>
           </div>
@@ -120,7 +141,10 @@ const TicketDetail = ({ ticket }) => {
               <p>"{ticket.aiRecommendation.autoResponse}"</p>
             </div>
 
-            <button className="btn-action approve-btn">
+            <button 
+              className="btn-action approve-btn"
+              onClick={handleApprove}
+            >
               <CheckCircle size={18} />
               One-Click Approve
             </button>

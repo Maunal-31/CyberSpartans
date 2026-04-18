@@ -17,14 +17,15 @@ const Reports = ({ tickets }) => {
         id: t.id,
         category: t.category || "Unknown",
         priority: t.priority || "Low",
-        resolutionAction: t.aiRecommendation?.action || "Pending Agent Review",
+        resolutionAction: t.resolutionAction || t.aiRecommendation?.action || "Resolved",
+        employeeResponse: t.employeeResponse || "N/A",
         timeTaken: t.timeAgo || "Just now"
       };
     });
 
     const totalResolutionsToday = tickets.length;
     // Simulate dynamic SLA breaches based on high priority count
-    const slaBreaches = Math.max(1, Math.floor(highCount * 0.3)); 
+    const slaBreaches = Math.max(0, Math.floor(highCount * 0.2)); 
     
     return {
       slaBreaches,
@@ -40,9 +41,9 @@ const Reports = ({ tickets }) => {
   }, [tickets]);
 
   const downloadCSV = () => {
-    const headers = ["Ticket ID", "Category", "Priority", "Resolution Action", "Time Taken"];
+    const headers = ["Ticket ID", "Category", "Priority", "Resolution Action", "Employee Response", "Time Taken"];
     const rows = reportData.resolutionsList.map(item => 
-      [item.id, item.category, item.priority, item.resolutionAction, item.timeTaken].join(",")
+      [item.id, item.category, item.priority, item.resolutionAction, item.employeeResponse.replace(/,/g, ";"), item.timeTaken].join(",")
     );
     
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
@@ -78,76 +79,86 @@ const Reports = ({ tickets }) => {
 
       {/* The following area is what gets printed nicely */}
       <div className="printable-report">
-        <div className="stats-grid">
-          <div className="stat-card glass-card border-danger">
-            <AlertTriangle className="text-danger mb-2" size={28} />
-            <div className="stat-value text-danger">{reportData.slaBreaches}</div>
-            <div className="stat-label">SLA Breaches Today</div>
+        {tickets.length === 0 ? (
+          <div className="empty-report-state glass-panel">
+            <CheckCircle size={48} className="text-success mb-3" />
+            <h3>No Resolved Tickets Yet</h3>
+            <p>Start resolving tickets from the queue to generate a report.</p>
           </div>
-          
-          <div className="stat-card glass-card">
-            <CheckCircle className="text-success mb-2" size={28} />
-            <div className="stat-value">{reportData.totalResolutionsToday}</div>
-            <div className="stat-label">Total Resolutions</div>
-          </div>
+        ) : (
+          <>
+            <div className="stats-grid">
+              <div className="stat-card glass-card border-danger">
+                <AlertTriangle className="text-danger mb-2" size={28} />
+                <div className="stat-value text-danger">{reportData.slaBreaches}</div>
+                <div className="stat-label">SLA Breaches Today</div>
+              </div>
+              
+              <div className="stat-card glass-card">
+                <CheckCircle className="text-success mb-2" size={28} />
+                <div className="stat-value">{reportData.totalResolutionsToday}</div>
+                <div className="stat-label">Total Resolutions</div>
+              </div>
 
-          <div className="stat-card glass-card">
-            <Clock className="text-violet mb-2" size={28} />
-            <div className="stat-value">{reportData.avgResolutionTime}</div>
-            <div className="stat-label">Avg. Resolution Time</div>
-          </div>
-        </div>
+              <div className="stat-card glass-card">
+                <Clock className="text-violet mb-2" size={28} />
+                <div className="stat-value">{reportData.avgResolutionTime}</div>
+                <div className="stat-label">Avg. Resolution Time</div>
+              </div>
+            </div>
 
-        <div className="priority-distribution glass-panel">
-          <h3>Priority Distribution</h3>
-          <div className="dist-bars">
-            <div className="dist-row">
-              <span className="dist-label">High Priority</span>
-              <div className="bar-bg"><div className="bar-fill bg-danger" style={{width: `${(reportData.priorityStats.High / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
-              <span className="dist-count">{reportData.priorityStats.High}</span>
+            <div className="priority-distribution glass-panel">
+              <h3>Priority Distribution</h3>
+              <div className="dist-bars">
+                <div className="dist-row">
+                  <span className="dist-label">High Priority</span>
+                  <div className="bar-bg"><div className="bar-fill bg-danger" style={{width: `${(reportData.priorityStats.High / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
+                  <span className="dist-count">{reportData.priorityStats.High}</span>
+                </div>
+                <div className="dist-row">
+                  <span className="dist-label">Medium Priority</span>
+                  <div className="bar-bg"><div className="bar-fill bg-warning" style={{width: `${(reportData.priorityStats.Medium / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
+                  <span className="dist-count">{reportData.priorityStats.Medium}</span>
+                </div>
+                <div className="dist-row">
+                  <span className="dist-label">Low Priority</span>
+                  <div className="bar-bg"><div className="bar-fill bg-success" style={{width: `${(reportData.priorityStats.Low / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
+                  <span className="dist-count">{reportData.priorityStats.Low}</span>
+                </div>
+              </div>
             </div>
-            <div className="dist-row">
-              <span className="dist-label">Medium Priority</span>
-              <div className="bar-bg"><div className="bar-fill bg-warning" style={{width: `${(reportData.priorityStats.Medium / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
-              <span className="dist-count">{reportData.priorityStats.Medium}</span>
-            </div>
-            <div className="dist-row">
-              <span className="dist-label">Low Priority</span>
-              <div className="bar-bg"><div className="bar-fill bg-success" style={{width: `${(reportData.priorityStats.Low / Math.max(1, reportData.totalResolutionsToday)) * 100}%`}}></div></div>
-              <span className="dist-count">{reportData.priorityStats.Low}</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="resolution-table-container glass-panel">
-          <h3>Daily Resolutions Log</h3>
-          <table className="resolution-table">
-            <thead>
-              <tr>
-                <th>Ticket ID</th>
-                <th>Category</th>
-                <th>Priority</th>
-                <th>Resolution Action</th>
-                <th>Time Taken</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.resolutionsList.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{item.id}</td>
-                  <td>{item.category}</td>
-                  <td>
-                    <span className={`badge ${item.priority === 'High' ? 'badge-danger' : item.priority === 'Medium' ? 'badge-warning' : 'badge-success'}`}>
-                      {item.priority}
-                    </span>
-                  </td>
-                  <td>{item.resolutionAction}</td>
-                  <td>{item.timeTaken}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            <div className="resolution-table-container glass-panel">
+              <h3>Daily Resolutions Log</h3>
+              <table className="resolution-table">
+                <thead>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Resolution Action</th>
+                    <th>Employee Response</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.resolutionsList.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>{item.id}</td>
+                      <td>{item.category}</td>
+                      <td>
+                        <span className={`badge ${item.priority === 'High' ? 'badge-danger' : item.priority === 'Medium' ? 'badge-warning' : 'badge-success'}`}>
+                          {item.priority}
+                        </span>
+                      </td>
+                      <td>{item.resolutionAction}</td>
+                      <td className="employee-resp-cell">{item.employeeResponse}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -5,13 +5,16 @@ import './Dashboard.css';
 
 const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
 
-const Dashboard = ({ tickets }) => {
+const Dashboard = ({ tickets, resolvedTickets = [] }) => {
   const analytics = useMemo(() => {
     const categoryCount = {};
     const categoryStock = {};
     let shippingErrorCount = 0;
 
-    tickets.forEach(ticket => {
+    // Combine active and resolved tickets for a full view of today's issues
+    const allTickets = [...tickets, ...resolvedTickets];
+
+    allTickets.forEach(ticket => {
       const cat = ticket.category || 'Unknown';
       categoryCount[cat] = (categoryCount[cat] || 0) + 1;
       
@@ -58,7 +61,7 @@ const Dashboard = ({ tickets }) => {
       shippingErrorCount,
       hasContinuousShippingError: shippingErrorCount >= 2
     };
-  }, [tickets]);
+  }, [tickets, resolvedTickets]);
 
   return (
     <div className="dashboard-container">

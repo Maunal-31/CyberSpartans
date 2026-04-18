@@ -46,14 +46,58 @@ function App() {
     }
     return sortTickets(mockTickets);
   });
+  
+  const [resolvedTickets, setResolvedTickets] = useState(() => {
+    const saved = localStorage.getItem('ai_desk_resolved_tickets');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [selectedTicket, setSelectedTicket] = useState(tickets[0]);
 
   useEffect(() => {
     localStorage.setItem('ai_desk_tickets', JSON.stringify(tickets));
   }, [tickets]);
 
+  useEffect(() => {
+    localStorage.setItem('ai_desk_resolved_tickets', JSON.stringify(resolvedTickets));
+  }, [resolvedTickets]);
+
   const handleAddTicket = (newTicket) => {
-    setTickets(prev => sortTickets([newTicket, ...prev]));
+    setTickets(prev => {
+      const updated = sortTickets([newTicket, ...prev]);
+      if (!selectedTicket) {
+        setSelectedTicket(newTicket);
+      }
+      return updated;
+    });
+  };
+
+  const handleResolveTicket = (ticket, responseText) => {
+    // Add to resolved list with the employee's response
+    const resolvedData = {
+      ...ticket,
+      employeeResponse: responseText,
+      resolvedAt: new Date().toISOString(),
+      resolutionAction: responseText ? "Custom Response" : ticket.aiRecommendation.action
+    };
+    
+    setResolvedTickets(prev => [resolvedData, ...prev]);
+    
+    // Remove from active tickets
+    const updatedTickets = tickets.filter(t => t.id !== ticket.id);
+    setTickets(updatedTickets);
+    
+    // Select next ticket if available
+    if (updatedTickets.length > 0) {
+      // If we resolved the currently selected ticket, pick the next one
+      if (selectedTicket?.id === ticket.id) {
+        const currentIndex = tickets.findIndex(t => t.id === ticket.id);
+        const nextTicket = updatedTickets[currentIndex] || updatedTickets[currentIndex - 1] || updatedTickets[0];
+        setSelectedTicket(nextTicket);
+      }
+    } else {
+      setSelectedTicket(null);
+    }
   };
 
   return (
@@ -71,13 +115,16 @@ function App() {
               />
             </div>
             <div className="ticket-detail-wrapper">
-              <TicketDetail ticket={selectedTicket} />
+              <TicketDetail 
+                ticket={selectedTicket} 
+                onResolve={handleResolveTicket} 
+              />
             </div>
           </div>
         )}
         
         {activeTab === 'dashboard' && (
-          <Dashboard tickets={tickets} />
+          <Dashboard tickets={tickets} resolvedTickets={resolvedTickets} />
         )}
 
         {activeTab === 'submit' && (
@@ -85,7 +132,7 @@ function App() {
         )}
 
         {activeTab === 'reports' && (
-          <Reports tickets={tickets} />
+          <Reports tickets={resolvedTickets} />
         )}
       </main>
     </div>
