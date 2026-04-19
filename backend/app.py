@@ -30,12 +30,15 @@ def classify_complaint():
 
     # Check for vague or garbage input
     tfidf_vector = cat_model.named_steps['tfidf'].transform([text])
-    if tfidf_vector.sum() == 0.0 or len(text.split()) < 3:
+    is_recognizable = tfidf_vector.sum() > 0
+    
+    # Only reject if it's both very short AND unrecognized by our model
+    if not is_recognizable and len(text.split()) < 2:
         return jsonify({
             "category": "Invalid Input",
             "priority": "Invalid Input",
             "sentiment": "Invalid Input",
-            "keywords": ["Please", "provide", "proper", "details"]
+            "keywords": ["Please", "provide", "more", "context"]
         })
 
     # Predict using the trained models
@@ -43,10 +46,41 @@ def classify_complaint():
     priority = pri_model.predict([text])[0]
     sentiment = sent_model.predict([text])[0]
     
+    # REINFORCEMENT LAYER: Force correct category for high-confidence keywords
+    text_lower = text.lower()
+    
+    # Sarcasm Detection
+    sarcastic_positive = ["great", "wonderful", "amazing", "brilliant", "thanks", "perfect", "so happy", "love"]
+    negative_context = ["broken", "lost", "delayed", "late", "defective", "nothing", "waiting", "shattered", "failed"]
+    
+    is_sarcastic = any(p in text_lower for p in sarcastic_positive) and any(n in text_lower for n in negative_context)
+    
+    if is_sarcastic:
+        sentiment = "Frustrated"
+        priority = "High"
+
+    if any(k in text_lower for k in ["defective", "broken", "faulty", "malfunction", "not working"]):
+        category = "Product"
+        priority = "High"
+    elif any(k in text_lower for k in ["late", "delayed", "overdue", "deadline"]):
+        category = "Shipping"
+        priority = "Medium"
+    elif any(k in text_lower for k in ["bulk", "wholesale", "pricing", "discount"]):
+        category = "Trade"
+
+    # NORMALIZE categories for Frontend
+    category_map = {
+        "Product": "Product Issue",
+        "Shipping": "Shipping Issue",
+        "Packaging": "Packaging Issue",
+        "Trade": "Trade Inquiry"
+    }
+    category = category_map.get(category, category)
+
     return jsonify({
-        "category": str(category),
-        "priority": str(priority),
-        "sentiment": str(sentiment),
+        "category": category,
+        "priority": priority,
+        "sentiment": sentiment,
         "keywords": [word for word in text.split() if len(word) > 4][:5] # simple keyword extraction
     })
 

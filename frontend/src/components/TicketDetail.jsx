@@ -127,6 +127,28 @@ const TicketDetail = ({ ticket, onResolve }) => {
           </div>
         </div>
 
+        {ticket.churnRisk && (
+          <div className="ai-section">
+            <h4>Customer Retention Insight</h4>
+            <div className={`churn-card glass-card ${ticket.churnRisk.level.toLowerCase()}`}>
+              <div className="churn-header">
+                <ShieldAlert size={18} />
+                <span>Churn Risk: {ticket.churnRisk.level}</span>
+              </div>
+              {ticket.aiRecommendation.retentionPerks && ticket.aiRecommendation.retentionPerks.length > 0 && (
+                <div className="goodies-list">
+                  <h5>Suggested Retention Perks:</h5>
+                  <ul>
+                    {ticket.aiRecommendation.retentionPerks.map((perk, i) => (
+                      <li key={i}><Sparkles size={12} className="text-violet" /> {perk}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="ai-section">
           <h4>Recommended Action</h4>
           <div className="recommendation-card glass-card border-glow">

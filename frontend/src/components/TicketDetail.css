@@ -321,3 +321,71 @@
   font-weight: 600;
   font-size: 0.85rem;
 }
+
+/* Churn Risk Styling */
+.churn-card {
+  padding: 16px;
+  border-radius: var(--border-radius-md);
+}
+
+.churn-card.high {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-left: 4px solid #ef4444;
+}
+
+.churn-card.medium {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-left: 4px solid #f59e0b;
+}
+
+.churn-card.low {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-left: 4px solid #10b981;
+}
+
+.churn-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+.churn-card.high .churn-header { color: #ef4444; }
+.churn-card.medium .churn-header { color: #f59e0b; }
+.churn-card.low .churn-header { color: #10b981; }
+
+.goodies-list h5 {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.goodies-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.goodies-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #f8fafc;
+  margin-bottom: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.border-glow {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}

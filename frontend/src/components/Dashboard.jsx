@@ -21,6 +21,7 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
       if (cat === 'Trade') cat = 'Trade Inquiry';
       if (cat === 'Packaging') cat = 'Packaging Issue';
       if (cat === 'Product') cat = 'Product Issue';
+      if (cat === 'Shipping') cat = 'Shipping Issue';
 
       categoryCount[cat] = (categoryCount[cat] || 0) + 1;
       
@@ -75,7 +76,7 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
       topError,
       topStock,
       shippingErrorCount,
-      hasContinuousShippingError: shippingErrorCount >= 2,
+      hasContinuousShippingError: shippingErrorCount >= 10,
       lastUpdated: new Date().toLocaleTimeString()
     };
   }, [tickets, resolvedTickets]);
@@ -105,7 +106,10 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
 
       <div className="dashboard-grid">
         <div className="dashboard-card chart-card glass-panel">
-          <h3>Error Distribution Today</h3>
+          <div className="chart-header">
+            <h3>Error Distribution Today</h3>
+            <span className="total-badge">{analytics.pieData.reduce((a, b) => a + b.value, 0)} Total</span>
+          </div>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -113,24 +117,42 @@ const Dashboard = ({ tickets, resolvedTickets = [] }) => {
                   data={analytics.pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={110}
+                  innerRadius={75}
+                  outerRadius={105}
                   fill="#8884d8"
                   paddingAngle={5}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={true}
                 >
                   {analytics.pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} 
-                  itemStyle={{ color: '#fff' }}
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                    border: '1px solid rgba(255, 255, 255, 0.1)', 
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+                  }} 
                 />
-                <Legend />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36} 
+                  formatter={(value, entry) => {
+                    const { payload } = entry;
+                    const total = analytics.pieData.reduce((a, b) => a + b.value, 0);
+                    const percent = ((payload.value / total) * 100).toFixed(0);
+                    return <span style={{ color: '#cbd5e1', fontSize: '13px' }}>{value} ({percent}%)</span>;
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
+            <div className="chart-center-label">
+              <span className="center-value">{analytics.pieData.reduce((a, b) => a + b.value, 0)}</span>
+              <span className="center-text">Tickets</span>
+            </div>
           </div>
         </div>
 

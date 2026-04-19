@@ -5,6 +5,7 @@ import './SubmitComplaint.css';
 const SubmitComplaint = ({ onAddTicket }) => {
   const [inputType, setInputType] = useState('text'); // text, audio, image, call, conversation
   const [complaintText, setComplaintText] = useState('');
+  const [customerId, setCustomerId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [addedToQueue, setAddedToQueue] = useState(false);
@@ -35,7 +36,8 @@ const SubmitComplaint = ({ onAddTicket }) => {
       if (onAddTicket) {
         const newTicket = {
           id: `TCK-${Math.floor(1000 + Math.random() * 9000)}`,
-          customerName: "New Customer",
+          customerId: customerId || "CUST-UNKNOWN",
+          customerName: customerId || "New Customer",
           avatar: `https://i.pravatar.cc/150?u=${Math.floor(Math.random() * 10000)}`,
           summary: complaintText.substring(0, 40) + (complaintText.length > 40 ? "..." : ""),
           channel: inputType === 'text' ? 'Web Form' : inputType === 'audio' ? 'Voice' : inputType === 'call' ? 'Phone' : 'Chat',
@@ -117,6 +119,17 @@ const SubmitComplaint = ({ onAddTicket }) => {
       </div>
 
       <div className="input-area glass-panel">
+        <div className="customer-context-input">
+          <label>Customer Identifier (ID/Email)</label>
+          <input 
+            type="text" 
+            placeholder="e.g. CUST-501 or alex@email.com" 
+            value={customerId}
+            onChange={(e) => setCustomerId(e.target.value)}
+            className="customer-id-field"
+          />
+        </div>
+
         {inputType === 'text' && (
           <textarea 
             placeholder="Type the complaint details here..."
@@ -130,7 +143,7 @@ const SubmitComplaint = ({ onAddTicket }) => {
             <Mic size={32} className="text-secondary mb-2" />
             <p>Drag and drop an audio file (.mp3, .wav) or click to upload</p>
             <input type="file" accept="audio/*" className="hidden-input" />
-            <button className="btn-secondary">Choose File</button>
+            <button className="btn-secondary" onClick={() => setComplaintText("Audio transcript: Customer reporting a product issue via voice note.")}>Choose File</button>
           </div>
         )}
 
@@ -139,7 +152,7 @@ const SubmitComplaint = ({ onAddTicket }) => {
             <ImageIcon size={32} className="text-secondary mb-2" />
             <p>Drag and drop an image or click to upload</p>
             <input type="file" accept="image/*" className="hidden-input" />
-            <button className="btn-secondary">Choose Image</button>
+            <button className="btn-secondary" onClick={() => setComplaintText("Image analysis: Photo shows a cracked screen on a monitor unit.")}>Choose Image</button>
           </div>
         )}
 
@@ -151,19 +164,21 @@ const SubmitComplaint = ({ onAddTicket }) => {
           ></textarea>
         )}
 
-        <div className="action-row">
-          <button 
-            className="btn-action submit-action-btn" 
-            onClick={handleProcess}
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <><Loader className="spin" size={18} /> Processing NLP...</>
-            ) : (
-              <><Send size={18} /> Process Complaint</>
-            )}
-          </button>
-        </div>
+        {complaintText.trim() && customerId.trim() && (
+          <div className="action-row">
+            <button 
+              className="btn-action submit-action-btn" 
+              onClick={handleProcess}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <><Loader className="spin" size={18} /> Processing NLP...</>
+              ) : (
+                <><Send size={18} /> Process Complaint</>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {result && (

@@ -122,8 +122,54 @@ function App() {
     localStorage.setItem('ai_desk_resolved_tickets', JSON.stringify(resolvedTickets));
   }, [resolvedTickets]);
 
+  const calculateChurnRisk = (id) => {
+    if (!id || id === "CUST-UNKNOWN") return { score: 0, level: 'Low', suggestions: [] };
+    
+    // Count complaints for this customer in both active and resolved
+    const allHistorical = [...tickets, ...resolvedTickets];
+    const userTickets = allHistorical.filter(t => t.customerId === id);
+    const count = userTickets.length;
+    
+    if (count >= 2) {
+      return { 
+        score: 85, 
+        level: 'High', 
+        suggestions: ["30% Retention Discount", "Priority Callback from Manager", "Free Shipping (1 Year)"] 
+      };
+    } else if (count === 1) {
+      return { 
+        score: 45, 
+        level: 'Medium', 
+        suggestions: ["10% Loyalty Voucher", "$10 Store Credit"] 
+      };
+    }
+    return { 
+      score: 10, 
+      level: 'Low', 
+      suggestions: ["Personalized Thank You Note"] 
+    };
+  };
+
   const handleAddTicket = (newTicket) => {
-    const ticketWithTime = { ...newTicket, createdAt: new Date().toISOString() };
+    const churn = calculateChurnRisk(newTicket.customerId);
+    
+    // Elevate priority if churn risk is high
+    const finalPriority = churn.level === 'High' ? 'High' : newTicket.priority;
+    
+    const ticketWithTime = { 
+      ...newTicket, 
+      createdAt: new Date().toISOString(),
+      priority: finalPriority,
+      churnRisk: churn,
+      aiRecommendation: {
+        ...newTicket.aiRecommendation,
+        retentionPerks: churn.suggestions,
+        reasoning: churn.level === 'High' 
+          ? `CRITICAL: High Churn Risk detected (${newTicket.customerId} has multiple recent complaints). Priority escalated to ensure retention.`
+          : newTicket.aiRecommendation.reasoning
+      }
+    };
+
     setTickets(prev => {
       const updated = sortTickets([ticketWithTime, ...prev]);
       if (!selectedTicket) {

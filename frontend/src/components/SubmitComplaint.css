@@ -55,6 +55,36 @@
   gap: 20px;
 }
 
+.customer-context-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customer-context-input label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+.customer-id-field {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.customer-id-field:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+}
+
 .input-area textarea {
   width: 100%;
   min-height: 200px;
@@ -112,7 +142,7 @@
   padding: 8px 16px;
   border-radius: var(--border-radius-sm);
   font-weight: 500;
-  pointer-events: none; /* Let the hidden input handle clicks */
+  cursor: pointer;
 }
 
 .action-row {
