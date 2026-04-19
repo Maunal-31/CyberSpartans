@@ -6,30 +6,29 @@ import SubmitComplaint from './components/SubmitComplaint';
 import Reports from './components/Reports';
 import Dashboard from './components/Dashboard';
 import { mockTickets } from './data/mockData';
+import { AlertTriangle } from 'lucide-react';
 import './App.css';
 
-const parseTimeAgo = (timeAgo) => {
-  if (!timeAgo) return 0;
-  const match = timeAgo.match(/(\d+)([mh])/);
-  if (match) {
-    const val = parseInt(match[1], 10);
-    const unit = match[2];
-    if (unit === 'h') return val * 60;
-    if (unit === 'm') return val;
-  }
-  return 0;
+const SLA_CONFIG = {
+  'High': 2 * 3600 * 1000,   // 2 hours
+  'Medium': 12 * 3600 * 1000, // 12 hours
+  'Low': 48 * 3600 * 1000    // 48 hours
 };
 
 const sortTickets = (ticketsToSort) => {
-  const priorityMap = { 'High': 1, 'Medium': 2, 'Low': 3 };
   return [...ticketsToSort].sort((a, b) => {
+    const deadlineA = new Date(a.createdAt).getTime() + (SLA_CONFIG[a.priority] || 0);
+    const deadlineB = new Date(b.createdAt).getTime() + (SLA_CONFIG[b.priority] || 0);
+    
+    // First by priority rank
+    const priorityMap = { 'High': 1, 'Medium': 2, 'Low': 3 };
     const pA = priorityMap[a.priority] || 4;
     const pB = priorityMap[b.priority] || 4;
+    
     if (pA !== pB) return pA - pB;
     
-    const timeA = parseTimeAgo(a.timeAgo);
-    const timeB = parseTimeAgo(b.timeAgo);
-    return timeB - timeA; 
+    // Then by deadline (closer first)
+    return deadlineA - deadlineB;
   });
 };
 
@@ -53,6 +52,67 @@ function App() {
   });
 
   const [selectedTicket, setSelectedTicket] = useState(tickets[0]);
+  const [alerts, setAlerts] = useState([]);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Force re-render every second for live timers
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Live SLA Tracking & Automated Timeout
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTickets(prevTickets => {
+        const now = Date.now();
+        const timedOutTickets = [];
+        const activeTickets = [];
+        let alertTriggered = false;
+        
+        prevTickets.forEach(ticket => {
+          const deadline = new Date(ticket.createdAt).getTime() + (SLA_CONFIG[ticket.priority] || 0);
+          const remaining = deadline - now;
+          
+          if (remaining <= 0) {
+            // TICKET TIMED OUT: Move to breaches/resolved
+            timedOutTickets.push({
+              ...ticket,
+              resolvedAt: new Date().toISOString(),
+              isSlaBreach: true,
+              resolutionAction: "System Timeout",
+              employeeResponse: "SLA Deadline Breached - Auto-Closed"
+            });
+          } else {
+            // Check for near-deadline alerts
+            if (remaining < 15 * 60 * 1000 && !ticket.alertTriggered) {
+              setAlerts(prev => [...prev, { id: ticket.id, message: `Deadline approaching for ${ticket.id}!` }]);
+              alertTriggered = true;
+              activeTickets.push({ ...ticket, alertTriggered: true });
+            } else {
+              activeTickets.push(ticket);
+            }
+          }
+        });
+
+        if (timedOutTickets.length > 0) {
+          setResolvedTickets(prev => [...timedOutTickets, ...prev]);
+          
+          // If the selected ticket just timed out, pick the next one
+          const currentSelectedTimedOut = timedOutTickets.some(t => t.id === selectedTicket?.id);
+          if (currentSelectedTimedOut) {
+            const nextIdx = prevTickets.findIndex(t => t.id === selectedTicket.id);
+            const remainingTickets = activeTickets;
+            setSelectedTicket(remainingTickets[nextIdx] || remainingTickets[nextIdx - 1] || remainingTickets[0] || null);
+          }
+        }
+
+        return (timedOutTickets.length > 0 || alertTriggered) ? sortTickets(activeTickets) : prevTickets;
+      });
+    }, 5000); // Check every 5 seconds for timeouts
+
+    return () => clearInterval(interval);
+  }, [selectedTicket]);
 
   useEffect(() => {
     localStorage.setItem('ai_desk_tickets', JSON.stringify(tickets));
@@ -63,23 +123,29 @@ function App() {
   }, [resolvedTickets]);
 
   const handleAddTicket = (newTicket) => {
+    const ticketWithTime = { ...newTicket, createdAt: new Date().toISOString() };
     setTickets(prev => {
-      const updated = sortTickets([newTicket, ...prev]);
+      const updated = sortTickets([ticketWithTime, ...prev]);
       if (!selectedTicket) {
-        setSelectedTicket(newTicket);
+        setSelectedTicket(ticketWithTime);
       }
       return updated;
     });
   };
 
   const handleResolveTicket = (ticket, responseText) => {
-    // Add to resolved list with the employee's response
+    const now = new Date();
+    const deadline = new Date(ticket.createdAt).getTime() + (SLA_CONFIG[ticket.priority] || 0);
+    const isBreach = now.getTime() > deadline;
+
     const resolvedData = {
       ...ticket,
       employeeResponse: responseText,
-      resolvedAt: new Date().toISOString(),
+      resolvedAt: now.toISOString(),
+      isSlaBreach: isBreach,
       resolutionAction: responseText ? "Custom Response" : ticket.aiRecommendation.action
     };
+// ... (rest of function unchanged)
     
     setResolvedTickets(prev => [resolvedData, ...prev]);
     
@@ -111,7 +177,8 @@ function App() {
               <TicketList 
                 tickets={tickets} 
                 selectedTicket={selectedTicket} 
-                setSelectedTicket={setSelectedTicket} 
+                setSelectedTicket={setSelectedTicket}
+                currentTime={currentTime}
               />
             </div>
             <div className="ticket-detail-wrapper">
@@ -135,6 +202,25 @@ function App() {
           <Reports tickets={resolvedTickets} />
         )}
       </main>
+
+      {/* Alerts Overlay */}
+      <div className="alerts-container">
+        {alerts.map((alert, idx) => (
+          <div key={`${alert.id}-${idx}`} className="alert-toast">
+            <AlertTriangle size={20} />
+            <div className="alert-content">
+              <strong>SLA Alert</strong>
+              <p>{alert.message}</p>
+            </div>
+            <button 
+              className="alert-close" 
+              onClick={() => setAlerts(prev => prev.filter((_, i) => i !== idx))}
+            >
+              &times;
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

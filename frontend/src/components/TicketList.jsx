@@ -2,24 +2,32 @@ import React from 'react';
 import { Search, Filter, MoreHorizontal, Clock } from 'lucide-react';
 import './TicketList.css';
 
-const TicketList = ({ tickets, selectedTicket, setSelectedTicket }) => {
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case 'High': return 'badge-danger';
-      case 'Medium': return 'badge-warning';
-      default: return 'badge-success';
-    }
+const SLA_CONFIG = {
+  'High': 2 * 3600 * 1000,
+  'Medium': 12 * 3600 * 1000,
+  'Low': 48 * 3600 * 1000
+};
+
+const TicketList = ({ tickets, selectedTicket, setSelectedTicket, currentTime }) => {
+  const getSlaStatus = (ticket) => {
+    const deadline = new Date(ticket.createdAt).getTime() + (SLA_CONFIG[ticket.priority] || 0);
+    const remaining = deadline - currentTime;
+    
+    if (remaining < 0) return { label: 'BREACHED', class: 'sla-breach' };
+    if (remaining < 15 * 60 * 1000) return { label: 'CRITICAL', class: 'sla-critical' };
+    if (remaining < 60 * 60 * 1000) return { label: 'URGENT', class: 'sla-urgent' };
+    return { label: 'ON TRACK', class: 'sla-ok' };
   };
 
-  const getSentimentColor = (sentiment) => {
-    switch (sentiment) {
-      case 'Angry': return 'text-danger';
-      case 'Frustrated': return 'text-warning';
-      case 'Sad': return 'text-warning';
-      case 'Neutral': return 'text-secondary';
-      case 'Happy': return 'text-success';
-      default: return 'text-secondary';
-    }
+  const formatRemaining = (ticket) => {
+    const deadline = new Date(ticket.createdAt).getTime() + (SLA_CONFIG[ticket.priority] || 0);
+    const remaining = deadline - currentTime;
+    if (remaining < 0) return "Overdue";
+    
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    return `${h}h ${m}m ${s}s left`;
   };
 
   return (
@@ -38,39 +46,47 @@ const TicketList = ({ tickets, selectedTicket, setSelectedTicket }) => {
       </div>
 
       <div className="tickets-scroll-area">
-        {tickets.map(ticket => (
-          <div 
-            key={ticket.id} 
-            className={`ticket-item glass-card ${selectedTicket?.id === ticket.id ? 'selected' : ''}`}
-            onClick={() => setSelectedTicket(ticket)}
-          >
-            <div className="ticket-item-header">
-              <span className="ticket-id">{ticket.id}</span>
-              <span className={`badge ${getPriorityBadge(ticket.priority)}`}>{ticket.priority}</span>
-            </div>
-            
-            <div className="ticket-user">
-              <img src={ticket.avatar} alt={ticket.customerName} className="avatar" />
-              <div className="user-info">
-                <span className="name">{ticket.customerName}</span>
-                <div className="meta">
-                  <Clock size={12} />
-                  <span>{ticket.timeAgo} via {ticket.channel}</span>
+        {tickets.map(ticket => {
+          const sla = getSlaStatus(ticket);
+          return (
+            <div 
+              key={ticket.id} 
+              className={`ticket-item glass-card ${selectedTicket?.id === ticket.id ? 'selected' : ''} ${sla.class}`}
+              onClick={() => setSelectedTicket(ticket)}
+            >
+              <div className="ticket-item-header">
+                <span className="ticket-id">{ticket.id}</span>
+                <div className="header-badges">
+                  <span className={`badge ${sla.class}-badge`}>{sla.label}</span>
+                  <span className={`badge ${ticket.priority === 'High' ? 'badge-danger' : ticket.priority === 'Medium' ? 'badge-warning' : 'badge-success'}`}>
+                    {ticket.priority}
+                  </span>
                 </div>
               </div>
-            </div>
-
-            <p className="ticket-summary">{ticket.summary}</p>
-            
-            <div className="ticket-footer">
-              <div className="sentiment">
-                <span className={`sentiment-dot ${getSentimentColor(ticket.sentiment)}`}>●</span>
-                {ticket.sentiment}
+              
+              <div className="ticket-user">
+                <img src={ticket.avatar} alt={ticket.customerName} className="avatar" />
+                <div className="user-info">
+                  <span className="name">{ticket.customerName}</span>
+                  <div className="meta">
+                    <Clock size={12} />
+                    <span className="sla-timer">{formatRemaining(ticket)}</span>
+                  </div>
+                </div>
               </div>
-              <button className="more-btn"><MoreHorizontal size={16} /></button>
+
+              <p className="ticket-summary">{ticket.summary}</p>
+              
+              <div className="ticket-footer">
+                <div className="sentiment">
+                  <span className={`sentiment-dot ${ticket.sentiment === 'Angry' ? 'text-danger' : ticket.sentiment === 'Frustrated' ? 'text-warning' : 'text-success'}`}>●</span>
+                  {ticket.sentiment}
+                </div>
+                <button className="more-btn"><MoreHorizontal size={16} /></button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

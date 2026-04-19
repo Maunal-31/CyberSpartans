@@ -129,6 +129,31 @@
   color: var(--text-secondary);
 }
 
+.header-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.ticket-item.sla-breach { border-left: 4px solid #ef4444; }
+.ticket-item.sla-critical { border-left: 4px solid #f97316; }
+.ticket-item.sla-urgent { border-left: 4px solid #f59e0b; }
+.ticket-item.sla-ok { border-left: 4px solid #10b981; }
+
+.sla-breach-badge { background: rgba(239, 68, 68, 0.2) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3); }
+.sla-critical-badge { background: rgba(249, 115, 22, 0.2) !important; color: #f97316 !important; border: 1px solid rgba(249, 115, 22, 0.3); }
+.sla-urgent-badge { background: rgba(245, 158, 11, 0.2) !important; color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3); }
+.sla-ok-badge { background: rgba(16, 185, 129, 0.2) !important; color: #10b981 !important; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+.sla-timer {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.sla-breach .sla-timer { color: #ef4444; }
+.sla-critical .sla-timer { color: #f97316; }
+.sla-urgent .sla-timer { color: #f59e0b; }
+.sla-ok .sla-timer { color: #10b981; }
+
 .ticket-summary {
   font-size: 0.9rem;
   color: var(--text-primary);

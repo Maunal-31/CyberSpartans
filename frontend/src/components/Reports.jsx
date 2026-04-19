@@ -19,13 +19,13 @@ const Reports = ({ tickets }) => {
         priority: t.priority || "Low",
         resolutionAction: t.resolutionAction || t.aiRecommendation?.action || "Resolved",
         employeeResponse: t.employeeResponse || "N/A",
-        timeTaken: t.timeAgo || "Just now"
+        timeTaken: t.timeAgo || "Just now",
+        isSlaBreach: t.isSlaBreach
       };
     });
 
     const totalResolutionsToday = tickets.length;
-    // Simulate dynamic SLA breaches based on high priority count
-    const slaBreaches = Math.max(0, Math.floor(highCount * 0.2)); 
+    const slaBreaches = tickets.filter(t => t.isSlaBreach).length; 
     
     return {
       slaBreaches,
@@ -142,7 +142,7 @@ const Reports = ({ tickets }) => {
                 </thead>
                 <tbody>
                   {reportData.resolutionsList.map((item, idx) => (
-                    <tr key={idx}>
+                    <tr key={idx} className={item.isSlaBreach ? 'row-breach' : ''}>
                       <td>{item.id}</td>
                       <td>{item.category}</td>
                       <td>
@@ -150,7 +150,10 @@ const Reports = ({ tickets }) => {
                           {item.priority}
                         </span>
                       </td>
-                      <td>{item.resolutionAction}</td>
+                      <td>
+                        {item.resolutionAction}
+                        {item.isSlaBreach && <span className="breach-tag">SLA BREACHED</span>}
+                      </td>
                       <td className="employee-resp-cell">{item.employeeResponse}</td>
                     </tr>
                   ))}
